@@ -3,7 +3,16 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: "*",
+  methods: ["POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 let isRunning = false;
 
