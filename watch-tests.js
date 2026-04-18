@@ -1,46 +1,30 @@
 const { spawn } = require("child_process");
-const express = require("express");
-const cors = require("cors");
+const fs = require("fs");
 
-const app = express();
+const triggerFile = ".runner/.trigger";
+const resultFile = "src/assets/test-result.json";
 
-const corsOptions = {
-  origin: "*",
-  methods: ["POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+if (!fs.existsSync(".runner")) fs.mkdirSync(".runner");
+if (!fs.existsSync(triggerFile)) fs.writeFileSync(triggerFile, "");
+if (!fs.existsSync("src/assets"))
+  fs.mkdirSync("src/assets", { recursive: true });
 
-let isRunning = false;
+fs.writeFileSync(resultFile, JSON.stringify({ status: "PENDING" }));
 
-app.post("/api/run-tests", (req, res) => {
-  if (isRunning) {
-    return res
-      .status(429)
-      .json({ error: "Tests are already running. Please wait." });
+fs.watch(triggerFile, (eventType) => {
+  if (eventType === "change") {
+    console.log("[TEST RUNNER] Disparando testes...");
+    fs.writeFileSync(resultFile, JSON.stringify({ status: "RUNNING" }));
+
+    const testProcess = spawn("npx", ["ng", "test"], {
+      stdio: "inherit",
+      shell: true,
+    });
+
+    testProcess.on("close", (code) => {
+      const status = code === 0 ? "PASS" : "FAIL";
+      fs.writeFileSync(resultFile, JSON.stringify({ status }));
+      console.log(`[TEST RUNNER] Testes concluídos com status: ${status}`);
+    });
   }
-
-  isRunning = true;
-  console.log("[WEBHOOK] Received request to run tests.");
-
-  const testProcess = spawn("npx", ["ng", "test"], {
-    stdio: "inherit",
-    shell: true,
-  });
-
-  testProcess.on("close", (code) => {
-    isRunning = false;
-
-    const status = code === 0 ? "PASS" : "FAIL";
-    console.log(`[WEBHOOK] Tests completed with status: ${status}`);
-
-    res.json({ status: status });
-  });
-});
-
-app.listen(3000, () => {
-  console.log("[WEBHOOK API] Express server listening on port 3000.");
 });
