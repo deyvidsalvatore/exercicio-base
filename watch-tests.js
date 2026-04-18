@@ -1,8 +1,12 @@
 const { spawn } = require("child_process");
 const fs = require("fs");
 
-const triggerFile = ".trigger";
-const resultFile = ".test-result";
+const triggerFile = ".runner/.trigger";
+const resultFile = ".runner/.test-result";
+
+if (!fs.existsSync(".runner")) {
+  fs.mkdirSync(".runner");
+}
 
 if (!fs.existsSync(triggerFile)) fs.writeFileSync(triggerFile, "");
 
