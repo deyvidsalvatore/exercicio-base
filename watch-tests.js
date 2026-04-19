@@ -2,48 +2,36 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 
 const triggerFile = ".runner/.trigger";
-const resultFile = "src/assets/test-result.json";
+const resultFile = ".runner/.test-result";
 
-if (!fs.existsSync(".runner")) fs.mkdirSync(".runner");
+if (!fs.existsSync(".runner")) {
+  fs.mkdirSync(".runner");
+}
+
 if (!fs.existsSync(triggerFile)) fs.writeFileSync(triggerFile, "");
-if (!fs.existsSync("src/assets"))
-  fs.mkdirSync("src/assets", { recursive: true });
 
-fs.writeFileSync(resultFile, JSON.stringify({ status: "PENDING" }));
-
-let isRunning = false;
-let debounceTimeout = null;
+console.log("[TEST RUNNER] Aguardando o clique no botão RUN TESTS...");
 
 fs.watch(triggerFile, (eventType) => {
   if (eventType === "change") {
-    clearTimeout(debounceTimeout);
+    console.log("\n[TEST RUNNER] Disparando testes...\n");
 
-    debounceTimeout = setTimeout(() => {
-      if (isRunning) {
-        console.log(
-          "[TEST RUNNER] Os testes já estão em execução. Ignorando novo gatilho.",
-        );
-        return;
+    fs.writeFileSync(resultFile, "RUNNING");
+
+    const testProcess = spawn("npx", ["ng", "test"], {
+      stdio: "inherit",
+      shell: true,
+    });
+
+    testProcess.on("close", (code) => {
+      const status = code === 0 ? "PASS" : "FAIL";
+      fs.writeFileSync(resultFile, status);
+
+      if (status === "PASS") {
+        console.log("\nTODOS OS TESTES PASSARAM!");
+      } else {
+        console.log("\nALGUNS TESTES FALHARAM.");
       }
-
-      isRunning = true;
-      console.log("[TEST RUNNER] Disparando testes...");
-      fs.writeFileSync(resultFile, JSON.stringify({ status: "RUNNING" }));
-
-      const testProcess = spawn("npx", ["ng", "test"], {
-        stdio: "inherit",
-        shell: true,
-      });
-
-      testProcess.on("exit", (code) => {
-        isRunning = false;
-
-        const processCode = code === null ? 1 : code;
-        const status = processCode === 0 ? "PASS" : "FAIL";
-
-        fs.writeFileSync(resultFile, JSON.stringify({ status }));
-        console.log(`[TEST RUNNER] Testes concluídos com status: ${status}`);
-      });
-    }, 500);
+    });
   }
 });
