@@ -2,12 +2,12 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 
 const triggerFile = ".runner/.trigger";
-const resultFile = "src/assets/test-result.json";
+const resultFile = "public/test-result.json";
 
 if (!fs.existsSync(".runner")) fs.mkdirSync(".runner");
 if (!fs.existsSync(triggerFile)) fs.writeFileSync(triggerFile, "");
-if (!fs.existsSync("src/assets"))
-  fs.mkdirSync("src/assets", { recursive: true });
+if (!fs.existsSync("public"))
+  fs.mkdirSync("public", { recursive: true });
 
 fs.watch(triggerFile, (eventType) => {
   if (eventType === "change") {
