@@ -68,6 +68,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "headers": {
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, OPTIONS",
+              "Access-Control-Allow-Headers": "Content-Type, Accept"
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "exercicio-base:build:production"
