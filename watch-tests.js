@@ -2,7 +2,7 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 
 const triggerFile = ".runner/.trigger";
-const resultFile = "src/assets/test-result.json";
+const resultFile = "public/test-result.json";
 
 if (!fs.existsSync(".runner")) {
   fs.mkdirSync(".runner");
