@@ -16,7 +16,7 @@ fs.watch(triggerFile, (eventType) => {
     console.log("[TEST RUNNER] Disparando testes...");
     fs.writeFileSync(resultFile, JSON.stringify({ status: "RUNNING" }));
 
-    const testProcess = spawn("npx", ["ng", "test", "--watch=false"], {
+    const testProcess = spawn("npx", ["ng", "test"], {
       stdio: "inherit",
       shell: true,
     });
