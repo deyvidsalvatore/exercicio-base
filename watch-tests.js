@@ -10,8 +10,8 @@ if (!fs.existsSync(".runner")) {
 
 if (!fs.existsSync(triggerFile)) fs.writeFileSync(triggerFile, "");
 
-if (!fs.existsSync("src/assets")) {
-  fs.mkdirSync("src/assets", { recursive: true });
+if (!fs.existsSync("public")) {
+  fs.mkdirSync("public", { recursive: true });
 }
 
 console.log("[TEST RUNNER] Aguardando o clique no botão RUN TESTS...");
