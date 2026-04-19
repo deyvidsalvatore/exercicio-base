@@ -1,51 +1,51 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>ExercicioBase</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
+  <head>
+    <meta charset="utf-8" />
+    <title>ExercicioBase</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  </head>
+  <body>
+    <app-root></app-root>
 
-  <script>
-    let lastStatus = 'PENDING';
-    let checkInterval = 5000;
-
-    const checkTestStatus = async () => {
-      try {
-        const response = await fetch('test-result.json?t=' + Date.now());
-        if (!response.ok) {
-          scheduleNext();
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data && data.status !== lastStatus) {
-          lastStatus = data.status;
-
-          if (data.status === 'RUNNING') {
-            checkInterval = 1000;
+    <script>
+      let lastStatus = 'PENDING';
+      let checkInterval = 5000;
+      const checkTestStatus = async () => {
+        try {
+          const response = await fetch('/test-result.json?t=' + Date.now());
+          if (!response.ok) {
+            scheduleNext();
+            return;
           }
-          else if (data.status === 'PASS' || data.status === 'FAIL') {
-            checkInterval = 5000;
 
-            window.parent.parent.postMessage({ type: 'TEST_RESULT', status: data.status }, '*');
+          const data = await response.json();
+
+          if (data && data.status !== lastStatus) {
+            lastStatus = data.status;
+
+            if (data.status === 'RUNNING') {
+              checkInterval = 1000;
+            } else if (data.status === 'PASS' || data.status === 'FAIL') {
+              checkInterval = 5000;
+
+              window.parent.parent.postMessage(
+                { type: 'TEST_RESULT', status: data.status },
+                '*'
+              );
+            }
           }
-        }
-      } catch (error) {
-      }
+        } catch (error) {}
+        scheduleNext();
+      };
+
+      const scheduleNext = () => {
+        setTimeout(checkTestStatus, checkInterval);
+      };
+
       scheduleNext();
-    };
-
-    const scheduleNext = () => {
-      setTimeout(checkTestStatus, checkInterval);
-    };
-
-    scheduleNext();
-  </script>
-</body>
+    </script>
+  </body>
 </html>
