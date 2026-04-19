@@ -15,7 +15,7 @@
       setInterval(async () => {
         try {
           const response = await fetch(
-            "/assets/test-result.json?t=" + Date.now(),
+            "test-result.json?t=" + Date.now(),
           );
           if (!response.ok) return;
 
