@@ -11,20 +11,39 @@ if (!fs.existsSync("src/assets"))
 
 fs.writeFileSync(resultFile, JSON.stringify({ status: "PENDING" }));
 
+let isRunning = false;
+let debounceTimeout = null;
+
 fs.watch(triggerFile, (eventType) => {
   if (eventType === "change") {
-    console.log("[TEST RUNNER] Disparando testes...");
-    fs.writeFileSync(resultFile, JSON.stringify({ status: "RUNNING" }));
+    clearTimeout(debounceTimeout);
 
-    const testProcess = spawn("npx", ["ng", "test"], {
-      stdio: "inherit",
-      shell: true,
-    });
+    debounceTimeout = setTimeout(() => {
+      if (isRunning) {
+        console.log(
+          "[TEST RUNNER] Os testes já estão em execução. Ignorando novo gatilho.",
+        );
+        return;
+      }
 
-    testProcess.on("close", (code) => {
-      const status = code === 0 ? "PASS" : "FAIL";
-      fs.writeFileSync(resultFile, JSON.stringify({ status }));
-      console.log(`[TEST RUNNER] Testes concluídos com status: ${status}`);
-    });
+      isRunning = true;
+      console.log("[TEST RUNNER] Disparando testes...");
+      fs.writeFileSync(resultFile, JSON.stringify({ status: "RUNNING" }));
+
+      const testProcess = spawn("npx", ["ng", "test"], {
+        stdio: "inherit",
+        shell: true,
+      });
+
+      testProcess.on("exit", (code) => {
+        isRunning = false;
+
+        const processCode = code === null ? 1 : code;
+        const status = processCode === 0 ? "PASS" : "FAIL";
+
+        fs.writeFileSync(resultFile, JSON.stringify({ status }));
+        console.log(`[TEST RUNNER] Testes concluídos com status: ${status}`);
+      });
+    }, 500);
   }
 });
